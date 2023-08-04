@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="layout.html :: header">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="container">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="showEdit(-1)">
+        Create
+    </button>
+    <table class="table table-striped table-hover">
+        <tr>
+            <td>Id</td>
+            <td>Name Product</td>
+            <td>Price</td>
+            <td>Quantity</td>
+            <td>Category</td>
+            <td>Action</td>
+        </tr>
+        <tbody id="body">
+
+        </tbody>
+
+    </table>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <form id="form" onsubmit="onSubmit(event)">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="formBody">
+                        <input type="text" id="title" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary"  >Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="layout.html :: footer"></div>
+<script>
+    const body = document.getElementById('body')
+    const API_PRODUCT = 'http://localhost:8080/api/product';
+    let  categories = [];
+    let product =[];
+    let productSelected;
+    let myModal = new bootstrap.Modal(document.getElementById('exampleModal'));
+    function showEdit(index){
+        let product;
+        if (index === -1){
+            product = {
+                nameProduct : '',
+                price : '',
+                quantity:'',
+                category:'',
+            }
+            productSelected = undefined;
+        }else {
+            product= product[index];
+            productSelected = product;
+        }
+
+        const inputs = [
+            {
+                label:"Name Product",
+                name:"nameProduct",
+                pattern: "^[A-Za-z]{6,20}",
+                message:"6 ký tự tới 20 ký tự bạn ei !!",
+                value :product.nameProduct
+            },
+            {
+                label:"Price",
+                name: "price",
+                pattern: "^[0-9]",
+                message:"nhập giá  bạn ei !!",
+                type:"number",
+                value: product.price
+            },
+            {
+                label:"Quantity",
+                name: "quantity",
+                pattern: "^[0-9]",
+                message:"nhập số lượng  bạn ei !!",
+                type:"number",
+                value: product.quantity
+            },
+            {
+                label: "Category",
+                name: "category",
+                type: "select",
+                message: "Category invalid",
+                options: categories.map(e => {
+                    return {value: e.id, name: e.name}
+                }),
+                value: product.categoryName
+            }
+        ]
+        const formBody = document.querySelector('#formBody');
+        formBody.innerHTML = '';
+        inputs.forEach((e, index) => {
+            formBody.innerHTML += formInput(e, index);
+        })
+    }
+            function initData(){
+        body.innerHTML= '';
+        $.ajax(
+            {
+                url:'http://localhost:8080/api/product',
+                method:'GET'
+            }
+        ).done(data =>{
+            product= data.content;
+            product.forEach((product,index) =>{
+            body.innerHTML+=`<tr>
+                    <td>${product.id}</td>
+                    <td>${product.nameProduct}</td>
+                    <td>${product.price}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.category}</td>
+                    <td>
+                      <button type="button" class="btn btn-primary" onclick="showEdit(${index})" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteById(${product.id})">Delete</button>
+                    </td>
+                    </tr>`
+            })
+        });
+                $.ajax({
+                    url:'http://localhost:8080/api/categories',
+                    method:'GET'
+                }).done(data => {
+                    categories = data;
+                })
+            }
+    function onSubmit(e){
+        e.preventDefault();
+        // dom từng element về rồi lấy giá trị
+        // parse về object tương đương DTO.
+
+        const form = document.getElementById('form');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        data.category = {
+            id: data.category
+        }
+        // kiểm tra xem edit hay create
+        //
+        if(productSelected){
+            $.ajax({
+                url: API_PRODUCT +'/' + productSelected.id,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'PUT',
+                data: JSON.stringify(data)
+            }).done(e => {
+                alert('Success');
+                initData();
+                myModal.hide();
+            })
+        }else{
+            $.ajax({
+                url: API_PRODUCT,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST',
+                data: JSON.stringify(data)
+            }).done(e => {
+                alert('Success');
+                initData();
+            })
+        }
+    }
+    function deleteById(id) {
+        $.ajax({
+            url: API_PRODUCT +'/' + id,
+            method: 'DELETE',
+        }).done(e => {
+            alert('Success');
+            initData();
+        })
+    }
+    initData();
+</script>
+</body>
+</html>

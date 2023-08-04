@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="layout.html :: header">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="container">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="showEdit(-1)">
+        Create
+    </button>
+    <table class="table table-striped table-hover">
+        <tr>
+            <td>Id</td>
+            <td>Name Customer</td>
+            <td>Date Added</td>
+            <td>Coupon Code</td>
+            <td>Action</td>
+        </tr>
+        <tbody id="body">
+
+        </tbody>
+
+    </table>
+    <nav aria-label="...">
+        <ul id="pagination" class="pagination">
+        </ul>
+    </nav>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <form id="form" onsubmit="onSubmit(event)">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="formBody">
+                        <input type="text" id="title" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary"  >Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="layout.html :: footer"></div>
+<script>
+    const body = document.getElementById('body')
+    const API_PRODUCT = 'http://localhost:8080/api/product-inport';
+    let categories = [];
+    let products = [];
+    let productSelected;
+    let myModal = new bootstrap.Modal(document.getElementById('exampleModal'))
+    let page = 0
+    let size = 2
+    let totalPage = 0
+
+    function showEdit(index) {
+        let productImport;
+        if (index === -1) {
+            productImport = {
+                customerName: '',
+                dateAdded: '',
+                couponCode: ''
+            }
+            productSelected = undefined;
+        } else {
+            product = products[index];
+            productSelected = product;
+        }
+
+
+        const inputs = [
+            {
+                label: "Name Customer",
+                name: "customerName",
+                pattern: "^[A-Za-z]{6,20}",
+                message: "Title must have minimun is 6 charaters and maximun is 20 charaters",
+                require: true,
+                value: product.customerName
+            },
+            {
+                label: "Date Added",
+                name: "dateAdded",
+                message: "Email invalid",
+                require: true,
+                value: product.dateAdded
+            },
+            {
+                label: "Coupon Code",
+                name: "couponCode",
+                type: "select",
+                message: "Category invalid",
+                value: product.couponCode
+            }
+        ]
+        const formBody = document.querySelector('#formBody');
+        formBody.innerHTML = '';
+        inputs.forEach((e, index) => {
+            formBody.innerHTML += formInput(e, index);
+        })
+
+    }
+
+    function onSubmit(e) {
+        e.preventDefault();
+        // dom từng element về rồi lấy giá trị
+        // parse về object tương đương DTO.
+
+        const form = document.getElementById('form');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        // kiểm tra xem edit hay create
+        //
+        if (productSelected) {
+            $.ajax({
+                url: API_PRODUCT + '/' + productSelected.id,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'PUT',
+                data: JSON.stringify(data)
+            }).done(e => {
+                alert('Success');
+                initData();
+                myModal.hide();
+            })
+        } else {
+            $.ajax({
+                url: API_PRODUCT,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST',
+                data: JSON.stringify(data)
+            }).done(e => {
+                alert('Success');
+                initData();
+            })
+        }
+    }
+
+    function deleteById(id) {
+        $.ajax({
+            url: API_PRODUCT + '/' + id,
+            method: 'DELETE',
+        }).done(e => {
+            alert('Success');
+            initData();
+        })
+    }
+
+    initData();
+    const renderProducts = () => {
+
+        body.innerHTML = '';
+        $.ajax({
+            url: `http://localhost:8080/api/product?page=${page || 0}&size=${size || 0}`,
+            method: 'GET'
+        }).done(data => {
+            products = data.content;
+            totalPage = data.totalPages;
+            renderPagination();
+            products.forEach((product, index) => {
+                body.innerHTML+=`<tr>
+                    <td>${product.id}</td>
+                    <td>${product.nameProduct}</td>
+                    <td>${product.price}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.categoryName}</td>
+                    <td>
+                      <button type="button" class="btn btn-primary" onclick="showEdit(${index})" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteById(${product.id})">Delete</button>
+                    </td>
+                    </tr>`
+
+            })
+        });
+    }
+
+    const renderPagination = () => {
+        console.log(totalPage)
+        const pagination = $('#pagination');
+        pagination.empty();
+        //render Previous
+        pagination.append(` <li onclick="onPageChange(${page})"
+        class="page-item ${page === 0 ? 'disabled' : ''}">
+      <a class="page-link" href="#" tabindex="-1" ${page === 0 ? 'aria-disabled="true"' : ''} >Previous</a>
+    </li>`)
+        for (let i = 1; i <= totalPage; i++) {
+            pagination
+                .append(`<li class="page-item" onclick="onPageChange(${i})">
+                            <a class="page-link ${page + 1 === i ? 'active' : ''} "
+                            ${page + 1 === i ? 'aria-current="page"' : ''} href="#">
+                                ${i}
+                            </a></li>`);
+
+        }
+
+        pagination.append(` <li onclick="onPageChange(${page + 2})"
+        class="page-item ${page === totalPage - 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" tabindex="-1" ${page === totalPage - 1 ? 'aria-disabled="true"' : ''} >Next</a>
+    </li>`);
+    }
+
+    renderProducts();
+    const onPageChange = (pageChange) => {
+        if(pageChange < 1 || pageChange > totalPage || pageChange === page+1){
+            return;
+        }
+        //console.log(page);
+        page = pageChange - 1;
+        renderProducts();
+    }
+</script>
+</body>
+</html>

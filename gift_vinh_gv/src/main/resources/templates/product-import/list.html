@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="layout.html :: header">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form onsubmit="onSubmit(event)" id="form" th:object="${product}" th:action="@{/productimports/}" method="post" class="row g-3 card" style="padding: 2rem 4rem; flex-direction: row">
+    <div id="formBody" class="row g-3">
+
+    </div>
+    <div class="d-flex flex-row-reverse">
+        <button class="btn btn-info ">Back</button>
+        <button type="button" onclick="addMore()" class="btn btn-primary me-3">Add More</button>
+        <button class="btn btn-primary me-3" >Submit</button>
+    </div>
+</form>
+<th:block th:replace="layout.html :: footer"></th:block>
+<script th:inline="javascript">
+    const API_PRODUCT_IMPORT = 'http://localhost:8080/api/productimports';
+    const customers = [[${customers}]];
+    const products = [[${products}]];
+    const sizes = [[${sizes}]];
+    const colors = [[${colors}]];
+    const inputs = [
+        {
+            label: "ImportDate",
+            name: "dateAdded",
+            // pattern: "^[A-Za-z]{6,20}",
+            message: "ImportDate must not be blank",
+            require: true,
+            value: "",
+            type: "date",
+            classDiv: 'col-6'
+        },
+        {
+            label: "ImportCode",
+            name: "couponCode",
+            pattern: "^[A-Za-z]{6,20}",
+            message: "ImportCode must have minimun is 6 charaters and maximun is 20 charaters",
+            require: true,
+            value: "",
+            classDiv: 'col-6'
+        },
+        {
+            label: "Customer",
+            name: "customer",
+            pattern: "^[0-9]",
+            message: "Nhập tiền đê",
+            require: true,
+            type:"select",
+            value: "",
+            options: customers.map(e => {
+                return {value: e.id, name: e.name}
+            }),
+            classDiv: 'col-12'
+        },
+        {
+            label: "Product",
+            name: "product",
+            message: "Product not be blank",
+            require: true,
+            type:"select",
+            value: "",
+            options: products.map(e => {
+                return {value: e.id, name: e.title}
+            }),
+            classDiv: 'col-3'
+        },
+        {
+            label: "Size",
+            name: "size",
+            message: "Size not be blank",
+            require: true,
+            type:"select",
+            value: "",
+            options: sizes.map(e => {
+                return {value: e, name: e}
+            }),
+            classDiv: 'col-3'
+        },
+        {
+            label: "Color",
+            name: "color",
+            message: "Color not be blank",
+            require: true,
+            type:"select",
+            value: "",
+            options: colors.map(e => {
+                return {value: e, name: e}
+            }),
+            classDiv: 'col-3'
+        },
+        {
+            label: "Quantity",
+            name: "quantity",
+            message: "Quantity not be blank",
+            require: true,
+            type:"number",
+            value: "",
+            classDiv: 'col-3'
+        },
+    ]
+    function renderForm(){
+        const formBody = document.querySelector('#formBody');
+        formBody.innerHTML = '';
+        inputs.forEach((e, index) => {
+            formBody.innerHTML += formInput(e, index);
+        })
+    }
+
+    function onSubmit(event){
+        event.preventDefault();
+        const form = document.getElementById('form');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        console.log(data);
+        const sizes = document.getElementsByName('size');
+        const colors = document.getElementsByName('color');
+        const quantities = document.getElementsByName('quantity');
+        const products = document.getElementsByName('product');
+        const productImportDetails = [];
+        for (let i = 0; i < sizes.length; i++) {
+            productImportDetails.push({
+                product: products[i].value,
+                quantity: quantities[i].value,
+                color: colors[i].value,
+                size: sizes[i].value,
+            })
+        }
+        data.productImportDetails = productImportDetails;
+
+        $.ajax({
+            url: API_PRODUCT_IMPORT,
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            data: JSON.stringify(data)
+        }).done(e => {
+            alert('Success');
+            renderForm();
+        })
+    }
+
+
+    function addMore() {
+
+        renderProductImportDetail();
+    }
+
+    function renderProductImportDetail() {
+        const inputProductImportDetail = [{
+            label: "Product",
+            name: "product",
+            message: "Product not be blank",
+            require: true,
+            type:"select",
+            value: "",
+            options: products.map(e => {
+                return {value: e.id, name: e.title}
+            }),
+            classDiv: 'col-3'
+        },
+            {
+                label: "Size",
+                name: "size",
+                message: "Size not be blank",
+                require: true,
+                type:"select",
+                value: "",
+                options: sizes.map(e => {
+                    return {value: e, name: e}
+                }),
+                classDiv: 'col-3'
+            },
+            {
+                label: "Color",
+                name: "color",
+                message: "Color not be blank",
+                require: true,
+                type:"select",
+                value: "",
+                options: colors.map(e => {
+                    return {value: e, name: e}
+                }),
+                classDiv: 'col-3'
+            },
+            {
+                label: "Quantity",
+                name: "quantity",
+                message: "Quantity not be blank",
+                require: true,
+                type:"number",
+                value: "",
+                classDiv: 'col-3'
+            }];
+        inputProductImportDetail.forEach((e, index) => {
+            $('#formBody').append(formInput(e, index)) ;
+        })
+    }
+
+
+    renderForm();
+</script>
+
+</body>
+</html>

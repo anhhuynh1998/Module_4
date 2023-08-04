@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="layout.html :: header">
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<form id="form" th:object="${product}" th:action="@{/products/create}" method="post" class="row g-3 card" style="padding: 2rem 4rem; flex-direction: row">
+  <div id="formBody" class="row g-3"></div>
+  <div class="col-3"> <button class="btn btn-primary" type="submit">Submit</button></div>
+</form>
+<th:block th:replace="layout.html :: footer"></th:block>
+<script th:inline="javascript">
+  const categories = [[${categories}]]
+  const  input = [
+    {
+      label:"Nanme Product",
+      name: "nameProduct",
+      pattern: "^[A-Za-z]{6,20}",
+      message:"6 ký tự tới 20 ký tự bạn ei !!",
+      value :"",
+      classDiv:'col-6'
+    },
+    {
+      label:"Price",
+      name: "price",
+      pattern: "^[0-9]",
+      message:"nhập giá  bạn ei !!",
+      require: true,
+      type:"number",
+      value: "",
+      classDiv: 'col-6'
+    },
+    {
+      label:"Quantity",
+      name: "quantity",
+      pattern: "^[0-9]",
+      message:"nhập số lượng  bạn ei !!",
+      require: true,
+      type:"number",
+      value: "",
+      classDiv: 'col-6'
+    },
+    {
+      label: "Category",
+      name: "category.id",
+      message: "chọn category đê",
+      require: true,
+      type:"select",
+      options: categories.map(e => {
+        return {value: e.id, name: e.name}
+      }),
+      value: "",
+      classDiv: 'col-6'
+    }
+  ]
+  function renderForm(){
+    const formBody = document.querySelector('#formBody');
+    formBody.innerHTML = '';
+    inputs.forEach((e, index) => {
+      formBody.innerHTML += formInput(e, index);
+    })
+  }
+  renderForm();
+
+</script>
+</body>
+</html>
