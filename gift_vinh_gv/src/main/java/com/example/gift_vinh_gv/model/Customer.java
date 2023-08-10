@@ -17,18 +17,16 @@ public class Customer {
     private String email;
     @Column(nullable = false)
     private String phone;
-    @Column(nullable = false)
-    private String status;
+
     @OneToMany(mappedBy = "customer")
     @JsonIgnore
     private Set<Bill> bills;
 
-  public Customer(int id, String name, String email, String phone, String status, Set<Bill> bills) {
+  public Customer(int id, String name, String email, String phone, Set<Bill> bills) {
     this.id = id;
     this.name = name;
     this.email = email;
     this.phone = phone;
-    this.status = status;
     this.bills = bills;
   }
 
@@ -66,15 +64,6 @@ public class Customer {
   public void setPhone(String phone) {
     this.phone = phone;
   }
-
-  public String getStatus() {
-    return status;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-  }
-
   public Set<Bill> getBills() {
     return bills;
   }

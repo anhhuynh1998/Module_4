@@ -9,13 +9,13 @@
     <form th:object="${bill}" th:action="@{/bills/create}" method="post" class="row g-3 card" style="padding: 2rem 4rem; flex-direction: row">
         <div class="col-md-6">
             <label for="name" class="form-label">Full Name</label>
-            <input type="text" class="form-control" th:classappend="${#fields.hasErrors('customer.name')} ? 'is-invalid' : ''" id="name" th:field="*{customer.name}">
+            <input type="text" class="form-control" id="name" th:field="*{customer.name}">
             <div class="invalid-feedback" th:if="${#fields.hasErrors('customer.name')}" th:errors="*{customer.name}"></div>
         </div>
         <div class="col-md-6">
             <label for="email" class="form-label">Email</label>
             <input type="email" class="form-control"
-                   th:classappend="${#fields.hasErrors('customer.email')} ? 'is-invalid' : ''"
+
                    id="email" th:field="*{customer.email}">
             <div class="invalid-feedback" th:if="${#fields.hasErrors('customer.email')}" th:errors="*{customer.email}"></div>
         </div>
@@ -24,11 +24,11 @@
             <input type="date" class="form-control" id="dateBought" th:field="*{dateBought}">
         </div>
         <div class="col-md-6">
-            <label for="phoneNumber" class="form-label">Phone Number</label>
+            <label for="phone" class="form-label">Phone Number</label>
             <input type="text" class="form-control"
-                   th:classappend="${#fields.hasErrors('customer.phoneNumber')} ? 'is-invalid' : ''"
-                   id="phoneNumber" th:field="*{customer.phoneNumber}">
-            <div class="invalid-feedback" th:if="${#fields.hasErrors('customer.phoneNumber')}" th:errors="*{customer.phoneNumber}"></div>
+                   th:classappend="${#fields.hasErrors('customer.phone')} ? 'is-invalid' : ''"
+                   id="phone" th:field="*{customer.phone}">
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('customer.phone')}" th:errors="*{customer.phone}"></div>
         </div>
         <div class="col-md-12">
             <label for="address" class="form-label">Address</label>
@@ -195,6 +195,8 @@
         billDetails[index].quantity = +e.value;
     }
     function extractNumberFromString(str) {
+        //str12 => 12
+        //mot => 1
         let number = str.match(/\d+/);
         return parseInt(number);
     }

@@ -5,17 +5,17 @@ import com.example.gift_vinh_gv.model.ProductImportDetail;
 import java.time.LocalDate;
 import java.util.List;
 
-public class ProductImportListReponse {
-    int id;
+public class ProductImportListResponse {
+    Integer id;
     String customerName;
     LocalDate dateAdded;
     String couponCode;
     List<ProductImportDetail> productImportDetails;
 
-    public ProductImportListReponse() {
+    public ProductImportListResponse() {
     }
 
-    public ProductImportListReponse(int id, String customerName, LocalDate dateAdded, String couponCode, List<ProductImportDetail> productImportDetails) {
+    public ProductImportListResponse(Integer id, String customerName, LocalDate dateAdded, String couponCode, List<ProductImportDetail> productImportDetails) {
         this.id = id;
         this.customerName = customerName;
         this.dateAdded = dateAdded;
@@ -23,11 +23,11 @@ public class ProductImportListReponse {
         this.productImportDetails = productImportDetails;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

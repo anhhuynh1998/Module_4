@@ -9,20 +9,40 @@
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" onclick="showEdit(-1)">
         Create
     </button>
+</div>
+<div class="col-8">
+    <input class="form-control search" type="search" id="search" onsubmit="onSearch()" />
+</div>
+<div class="row" style="margin: 20px 0">
+    <h3>Price range</h3>
+    <div class="col-4">
+        <input class="form-control" type="number" id="min" value="0" />
+    </div>
+    <div class="col-4">
+        <input type="number" value="10000000" id="max" class="form-control" />
+    </div>
+    <div class="col-2">
+        <button onclick="onFilter()" class="btn btn-info" type="button">Filter</button>
+    </div>
+
+</div>
     <table class="table table-striped table-hover">
         <tr>
-            <td>Id</td>
-            <td>Name Product</td>
-            <td>Price</td>
-            <td>Quantity</td>
-            <td>Category</td>
-            <td>Action</td>
+            <td onclick="onSort('id')">Id</td>
+            <td onclick="onSort('nameProduct')">Name Product</td>
+            <td onclick="onSort('price')">Price </td>
+            <td onclick="onSort('quantity')">Quantity</td>
+            <td onclick="onSort('category.name')">Action</td>
         </tr>
         <tbody id="body">
 
         </tbody>
 
     </table>
+    <nav aria-label="...">
+        <ul id="pagination" class="pagination">
+        </ul>
+    </nav>
 
 
     <!-- Modal -->
@@ -50,10 +70,21 @@
 <script>
     const body = document.getElementById('body')
     const API_PRODUCT = 'http://localhost:8080/api/product';
-    let  categories = [];
-    let product =[];
+    let categories = [];
+    let products = [];
     let productSelected;
-    let myModal = new bootstrap.Modal(document.getElementById('exampleModal'));
+    let myModal = new bootstrap.Modal(document.getElementById('exampleModal'))
+    let page = 0
+    let size = 2
+    let totalPage = 0
+    let sort = {
+        field : "id",
+        sortBy : "asc"
+    }
+    let  min = 0;
+    let max = 10000;
+    let search ;
+
     function showEdit(index){
         let product;
         if (index === -1){
@@ -65,7 +96,7 @@
             }
             productSelected = undefined;
         }else {
-            product= product[index];
+            product= products[index];
             productSelected = product;
         }
 
@@ -73,7 +104,7 @@
             {
                 label:"Name Product",
                 name:"nameProduct",
-                pattern: "^[A-Za-z]{6,20}",
+                pattern: "^[A-Za-z ]{6,20}",
                 message:"6 ký tự tới 20 ký tự bạn ei !!",
                 value :product.nameProduct
             },
@@ -109,38 +140,21 @@
         inputs.forEach((e, index) => {
             formBody.innerHTML += formInput(e, index);
         })
+
     }
-            function initData(){
-        body.innerHTML= '';
-        $.ajax(
-            {
-                url:'http://localhost:8080/api/product',
-                method:'GET'
-            }
-        ).done(data =>{
-            product= data.content;
-            product.forEach((product,index) =>{
-            body.innerHTML+=`<tr>
-                    <td>${product.id}</td>
-                    <td>${product.nameProduct}</td>
-                    <td>${product.price}</td>
-                    <td>${product.quantity}</td>
-                    <td>${product.category}</td>
-                    <td>
-                      <button type="button" class="btn btn-primary" onclick="showEdit(${index})" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
-                                    <button type="button" class="btn btn-danger" onclick="deleteById(${product.id})">Delete</button>
-                    </td>
-                    </tr>`
-            })
-        });
-                $.ajax({
-                    url:'http://localhost:8080/api/categories',
-                    method:'GET'
-                }).done(data => {
-                    categories = data;
-                })
-            }
-    function onSubmit(e){
+
+
+    function initData() {
+
+        $.ajax({
+            url: 'http://localhost:8080/api/categories',
+            method: 'GET'
+        }).done(data => {
+            categories = data;
+        })
+    }
+
+    function onSubmit(e) {
         e.preventDefault();
         // dom từng element về rồi lấy giá trị
         // parse về object tương đương DTO.
@@ -153,9 +167,9 @@
         }
         // kiểm tra xem edit hay create
         //
-        if(productSelected){
+        if (productSelected) {
             $.ajax({
-                url: API_PRODUCT +'/' + productSelected.id,
+                url: API_PRODUCT + '/' + productSelected.id,
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -164,10 +178,10 @@
                 data: JSON.stringify(data)
             }).done(e => {
                 alert('Success');
-                initData();
+                renderProducts()
                 myModal.hide();
             })
-        }else{
+        } else {
             $.ajax({
                 url: API_PRODUCT,
                 headers: {
@@ -178,20 +192,104 @@
                 data: JSON.stringify(data)
             }).done(e => {
                 alert('Success');
-                initData();
+                renderProducts()
+                myModal.hide();
             })
         }
     }
+
     function deleteById(id) {
         $.ajax({
-            url: API_PRODUCT +'/' + id,
+            url: API_PRODUCT + '/' + id,
             method: 'DELETE',
         }).done(e => {
             alert('Success');
-            initData();
+            onPageChange(1)
         })
     }
+
     initData();
+    const renderProducts = () => {
+        body.innerHTML = '';
+        $.ajax({
+            url: `http://localhost:8080/api/product?page=${page || 0}&size=${size || 0}&search=${search || ''}&sort=${sort.field},${sort.sortBy}&priceMax=${max}&priceMin=${min}`,
+            method: 'GET'
+
+        }).done(data => {
+            products = data.content;
+            totalPage = data.totalPages;
+
+            products.forEach((product, index) => {
+                body.innerHTML+=`<tr>
+                    <td>${product.id}</td>
+                    <td>${product.nameProduct}</td>
+                    <td>${product.price}</td>
+                    <td>${product.quantity}</td>
+                    <td>${product.categoryName}</td>
+                    <td>
+                      <button type="button" class="btn btn-primary" onclick="showEdit(${index})" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteById(${product.id})">Delete</button>
+                    </td>
+                    </tr>`
+            })
+            renderPagination();
+        });
+
+    }
+
+    const renderPagination = () => {
+        const pagination = $('#pagination');
+        pagination.empty();
+        //render Previous
+        pagination.append(` <li onclick="onPageChange(${page})"
+        class="page-item ${page === 0 ? 'disabled' : ''}">
+      <a class="page-link" href="#" tabindex="-1" ${page === 0 ? 'aria-disabled="true"' : ''} >Previous</a>
+    </li>`)
+        for (let i = 1; i <= totalPage; i++) {
+            pagination
+                .append(`<li class="page-item" onclick="onPageChange(${i})">
+                            <a class="page-link ${page + 1 === i ? 'active' : ''} "
+                            ${page + 1 === i ? 'aria-current="page"' : ''} href="#">
+                                ${i}
+                            </a></li>`);
+
+        }
+
+        pagination.append(` <li onclick="onPageChange(${page + 2})"
+        class="page-item ${page === totalPage - 1 ? 'disabled' : ''}">
+      <a class="page-link" href="#" tabindex="-1" ${page === totalPage - 1 ? 'aria-disabled="true"' : ''} >Next</a>
+    </li>`);
+    }
+
+    renderProducts();
+    const onPageChange = (pageChange) => {
+        if(pageChange < 1 || pageChange > totalPage || pageChange === page+1){
+            return;
+        }
+        //console.log(page);
+        page = pageChange - 1;
+        renderProducts();
+    }
+    function onSearch(){
+        search = document.getElementById('search').value;
+        renderProducts();
+    }
+
+    function onSort(str){
+        if(sort.field === str){
+            sort.sortBy = sort.sortBy === 'desc' ? 'asc' : 'desc';
+        }else{
+            sort.field = str;
+            sort.sortBy = 'asc';
+        }
+        renderProducts();
+    }
+
+    function onFilter(){
+        min = document.getElementById('min').value;
+        max = document.getElementById('max').value;
+        renderProducts();
+    }
 </script>
 </body>
 </html>

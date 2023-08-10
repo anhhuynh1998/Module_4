@@ -1,14 +1,27 @@
 package com.example.gift_vinh_gv.service.product.request;
 
 public class ProductSaveRequest {
+    private String nameProduct;
     private String price;
     private String quantity;
     private SelectOptionRequest category;
 
-    public ProductSaveRequest(String price, String quantity, SelectOptionRequest category) {
+    public ProductSaveRequest() {
+    }
+
+    public ProductSaveRequest(String nameProduct, String price, String quantity, SelectOptionRequest category) {
+        this.nameProduct = nameProduct;
         this.price = price;
         this.quantity = quantity;
         this.category = category;
+    }
+
+    public String getNameProduct() {
+        return nameProduct;
+    }
+
+    public void setNameProduct(String nameProduct) {
+        this.nameProduct = nameProduct;
     }
 
     public String getPrice() {

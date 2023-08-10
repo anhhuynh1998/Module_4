@@ -52,51 +52,48 @@
 <div th:replace="layout.html :: footer"></div>
 <script>
     const body = document.getElementById('body')
-    const API_PRODUCT = 'http://localhost:8080/api/product-inport';
-    let categories = [];
+    const API_PRODUCT = 'http://localhost:8080/api/product-imports';
     let products = [];
     let productSelected;
     let myModal = new bootstrap.Modal(document.getElementById('exampleModal'))
     let page = 0
     let size = 2
-    let totalPage = 0
+    let totalPage = 0;
 
-    function showEdit(index) {
-        let productImport;
-        if (index === -1) {
-            productImport = {
-                customerName: '',
-                dateAdded: '',
-                couponCode: ''
+    function showEdit(index){
+        let product;
+        if (index === -1){
+            product = {
+                customerName : '',
+                dateAdded : '',
+                couponCode:'',
             }
-            productSelected = undefined;
-        } else {
-            product = products[index];
+        }else {
+            product= products[index];
             productSelected = product;
         }
 
-
         const inputs = [
             {
-                label: "Name Customer",
-                name: "customerName",
-                pattern: "^[A-Za-z]{6,20}",
-                message: "Title must have minimun is 6 charaters and maximun is 20 charaters",
-                require: true,
-                value: product.customerName
+                label:"Name Customer",
+                name:"customerName",
+                pattern: "^[A-Za-z ]{6,20}",
+                message:"6 ký tự tới 20 ký tự bạn ei !!",
+                value :product.customerName
             },
             {
-                label: "Date Added",
+                label:"Date ADDED",
                 name: "dateAdded",
-                message: "Email invalid",
-                require: true,
+                message:"nhập ngày bạn ei !!",
+                type:"date",
                 value: product.dateAdded
             },
             {
-                label: "Coupon Code",
+                label:"Coupon Code",
                 name: "couponCode",
-                type: "select",
-                message: "Category invalid",
+                pattern: "^[A-Za-z ]{6,20}",
+                message:"nhập số lượng  bạn ei !!",
+                type:"text",
                 value: product.couponCode
             }
         ]
@@ -129,7 +126,6 @@
                 data: JSON.stringify(data)
             }).done(e => {
                 alert('Success');
-                initData();
                 myModal.hide();
             })
         } else {
@@ -143,7 +139,6 @@
                 data: JSON.stringify(data)
             }).done(e => {
                 alert('Success');
-                initData();
             })
         }
     }
@@ -154,28 +149,24 @@
             method: 'DELETE',
         }).done(e => {
             alert('Success');
-            initData();
         })
     }
-
-    initData();
     const renderProducts = () => {
-
         body.innerHTML = '';
         $.ajax({
-            url: `http://localhost:8080/api/product?page=${page || 0}&size=${size || 0}`,
+            url: `http://localhost:8080/api/product-imports?page=${page || 0}&size=${size || 0}`,
             method: 'GET'
         }).done(data => {
             products = data.content;
+            // products = data;
             totalPage = data.totalPages;
             renderPagination();
             products.forEach((product, index) => {
                 body.innerHTML+=`<tr>
                     <td>${product.id}</td>
-                    <td>${product.nameProduct}</td>
-                    <td>${product.price}</td>
-                    <td>${product.quantity}</td>
-                    <td>${product.categoryName}</td>
+                    <td>${product.customerName|| ''}</td>
+                    <td>${product.dateAdded || ''}</td>
+                    <td>${product.couponCode}</td>
                     <td>
                       <button type="button" class="btn btn-primary" onclick="showEdit(${index})" data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</button>
                                     <button type="button" class="btn btn-danger" onclick="deleteById(${product.id})">Delete</button>
@@ -187,7 +178,6 @@
     }
 
     const renderPagination = () => {
-        console.log(totalPage)
         const pagination = $('#pagination');
         pagination.empty();
         //render Previous

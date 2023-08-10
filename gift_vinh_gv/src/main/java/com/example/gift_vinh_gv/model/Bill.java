@@ -3,6 +3,7 @@ package com.example.gift_vinh_gv.model;
 import com.example.gift_vinh_gv.model.eNum.Status;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -11,7 +12,11 @@ public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private LocalDate dayBuy;
+    private String customerName;
+
+    private LocalDate dateBought;
+
+    private BigDecimal totalAmount;
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
@@ -20,12 +25,17 @@ public class Bill {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+
+
     public Bill() {
     }
 
-    public Bill(int id, LocalDate dayBuy, Customer customer, Set<BillDetail> billDetails, Status status) {
+
+    public Bill(int id, String customerName, LocalDate dateBought, BigDecimal totalAmount, Customer customer, Set<BillDetail> billDetails, Status status) {
         this.id = id;
-        this.dayBuy = dayBuy;
+        this.customerName = customerName;
+        this.dateBought = dateBought;
+        this.totalAmount = totalAmount;
         this.customer = customer;
         this.billDetails = billDetails;
         this.status = status;
@@ -35,16 +45,32 @@ public class Bill {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public LocalDate getDayBuy() {
-        return dayBuy;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setDayBuy(LocalDate dayBuy) {
-        this.dayBuy = dayBuy;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public LocalDate getDateBought() {
+        return dateBought;
+    }
+
+    public void setDateBought(LocalDate dateBought) {
+        this.dateBought = dateBought;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public Customer getCustomer() {

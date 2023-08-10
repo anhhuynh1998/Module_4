@@ -10,6 +10,8 @@ import com.example.gift_vinh_gv.service.bill.request.BillSaveRequest;
 import com.example.gift_vinh_gv.utils.AppUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 public class BillService {
 
@@ -30,12 +32,29 @@ public class BillService {
         // if exist update field
         // else create
         Bill bill = AppUtils.mapper.map(request, Bill.class);
+        bill.setCustomerName(request.getCustomer().getName());
+        bill.setStatus(Status.PAID);
+        var totalAmount = BigDecimal.ZERO;
         for (var item: bill.getBillDetails()) {
             var product = productRepository.findById(item.getProduct().getId()).orElseThrow();
             item.setPrice(product.getPrice());
             item.setNameProduct(product.getNameProduct());
+            item.setBill(bill);
+            totalAmount = totalAmount
+                    .add(product.getPrice()
+                            .multiply(new BigDecimal(item.getQuantity())));
         }
-        bill.setStatus(Status.PAID) ;
-       billRepository.save(bill);
+        bill.setTotalAmount(totalAmount);
+        Customer customer = customerRepository.findCustomerByPhone(request.getCustomer().getPhone()).orElse(null);
+        if(customer != null){
+            bill.getCustomer().setId(customer.getId());
+            //
+        }
+        customer = bill.getCustomer();
+
+        bill.setCustomer(customerRepository.save(customer));
+
+        billRepository.save(bill);
     }
+
 }

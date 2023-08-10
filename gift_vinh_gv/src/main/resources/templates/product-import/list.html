@@ -5,7 +5,7 @@
     <title>Title</title>
 </head>
 <body>
-<form onsubmit="onSubmit(event)" id="form" th:object="${product}" th:action="@{/productimports/}" method="post" class="row g-3 card" style="padding: 2rem 4rem; flex-direction: row">
+<form onsubmit="onSubmit(event)" id="form" th:object="${product}" th:action="@{/product-imports/}" method="post" class="row g-3 card" style="padding: 2rem 4rem; flex-direction: row">
     <div id="formBody" class="row g-3">
 
     </div>
@@ -17,7 +17,7 @@
 </form>
 <th:block th:replace="layout.html :: footer"></th:block>
 <script th:inline="javascript">
-    const API_PRODUCT_IMPORT = 'http://localhost:8080/api/productimports';
+    const API_PRODUCT_IMPORT = 'http://localhost:8080/api/product-imports';
     const customers = [[${customers}]];
     const products = [[${products}]];
     const sizes = [[${sizes}]];
@@ -25,7 +25,7 @@
     const inputs = [
         {
             label: "ImportDate",
-            name: "dateAdded",
+            name: "importDate",
             // pattern: "^[A-Za-z]{6,20}",
             message: "ImportDate must not be blank",
             require: true,
@@ -35,8 +35,8 @@
         },
         {
             label: "ImportCode",
-            name: "couponCode",
-            pattern: "^[A-Za-z]{6,20}",
+            name: "importCode",
+            pattern: "^[A-Za-z ]{6,20}",
             message: "ImportCode must have minimun is 6 charaters and maximun is 20 charaters",
             require: true,
             value: "",
@@ -63,7 +63,7 @@
             type:"select",
             value: "",
             options: products.map(e => {
-                return {value: e.id, name: e.title}
+                return {value: e.id, name: e.nameProduct}
             }),
             classDiv: 'col-3'
         },
@@ -114,7 +114,6 @@
         const form = document.getElementById('form');
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        console.log(data);
         const sizes = document.getElementsByName('size');
         const colors = document.getElementsByName('color');
         const quantities = document.getElementsByName('quantity');
@@ -159,7 +158,7 @@
             type:"select",
             value: "",
             options: products.map(e => {
-                return {value: e.id, name: e.title}
+                return {value: e.id, name: e.nameProduct}
             }),
             classDiv: 'col-3'
         },
